@@ -1,61 +1,61 @@
+"""Compares a replay against the top 50 of its beatmap"""
 import sys
-import dontsteal
-import download
 import os
 import shutil
 from glob import glob
+import dontsteal
+import download
 from osrparse.replay import parse_replay_file
 
 # Open Replay & Analyze
-targetReplay = dontsteal.open_replay()
-dontsteal.analyze(targetReplay)
+TARGET_REPLAY = dontsteal.open_replay()
+dontsteal.analyze(TARGET_REPLAY)
 
 # Get Replay Events
-targetReplayEvents = dontsteal.get_events_per_second(targetReplay)
+TARGET_REPLAY_EVENTS = dontsteal.get_events_per_second(TARGET_REPLAY)
 
 # Download Top 50 Replays
-download.login(targetReplay.beatmap_hash)
+download.login(TARGET_REPLAY.beatmap_hash)
 
 # Top 50 Replays
-top50Replays = []
-directory = os.getcwd()
-pattern = "*.osr"
+TOP_50_REPLAYS = []
+DIRECTORY = os.getcwd()
+PATTERN = "*.osr"
 
-for dir, _, _ in os.walk(directory):
-    top50Replays.extend(glob(os.path.join(dir, pattern)))
+for dir, _, _ in os.walk(DIRECTORY):
+    TOP_50_REPLAYS.extend(glob(os.path.join(dir, PATTERN)))
 
-# print_chan? Really Shaural lol.
-output = ""
-def prettyPrint(text):
-    global output
-    output += "%s\n" % text
+OUTPUT = ""
+def pretty_print(text):
+    """Print it better"""
+    global OUTPUT
+    OUTPUT += "%s\n" % text
     return
 
-if not top50Replays:
+if not TOP_50_REPLAYS:
     print("Beatmap not ranked, can't download replays!")
     sys.exit(1)
 
 print()
 SUSPICIOUS = False
-for rp in top50Replays:
+for rp in TOP_50_REPLAYS:
 
-    replayToCheck = parse_replay_file(rp)
-    rpEvents = dontsteal.get_events_per_second(replayToCheck)
+    replay_to_check = parse_replay_file(rp)
+    rp_events = dontsteal.get_events_per_second(replay_to_check)
 
-    comparison = dontsteal.compare_data(targetReplayEvents, rpEvents)
+    comparison = dontsteal.compare_data(TARGET_REPLAY_EVENTS, rp_events)
 
-    prettyPrint("\nComparing to %s's replay" % replayToCheck.player_name)
-    prettyPrint("\nCases where the same keys were pressed: %s%%" % comparison[1] +
-               "\nCases where the pressed keys were different: %s%%" % comparison[2])
+    pretty_print("\nComparing to {}'s replay".format(replay_to_check.player_name))
+    pretty_print("\nCases where the same keys were pressed: {}%%".format(comparison[1]) +
+                 "\nCases where the pressed keys were different: {}%%".format(comparison[2]))
 
-    if comparison[1] >= 95 and replayToCheck.player_name != targetReplay.player_name:
+    if comparison[1] >= 95 and replay_to_check.player_name != TARGET_REPLAY.player_name:
         SUSPICIOUS = True
 
         print("""\nSuspicious same keys pressed percentage:
               {0:.2f}% with {top_player}'s replay""".format(comparison[1],
-                               
-                                                            top_player=replayToCheck.player_name))
-    prettyPrint("Lowest values:")
+                                                            top_player=replay_to_check.player_name))
+    pretty_print("Lowest values:")
 
     suspicious_low_values = True
 
@@ -64,34 +64,34 @@ for rp in top50Replays:
         if values >= 1:
             suspicious_low_values = False
 
-        prettyPrint(values)
+        pretty_print(values)
 
-    if suspicious_low_values and replayToCheck.player_name != targetReplay.player_name:
+    if suspicious_low_values and replay_to_check.player_name != TARGET_REPLAY.player_name:
 
         SUSPICIOUS = True
 
         print("""\nSuspicious lowest values with
-              {top_player}'s replay""".format(top_player=replayToCheck.player_name))
+              {top_player}'s replay""".format(top_player=replay_to_check.player_name))
 
-    prettyPrint("\nAverage of similarity:")
+    pretty_print("\nAverage of similarity:")
 
     average_value = sum(comparison[0]) / len(comparison[0])
 
-    if average_value <= 15 and replayToCheck.player_name != targetReplay.player_name:
+    if average_value <= 15 and replay_to_check.player_name != TARGET_REPLAY.player_name:
         SUSPICIOUS = True
 
         print("""\nSuspicious average of similarity:
               {0:.4f} with {top_player}'s replay""".format(average_value,
-                                                           top_player=replayToCheck.player_name))
+                                                           top_player=replay_to_check.player_name))
 
-    prettyPrint(average_value)
+    pretty_print(average_value)
 
 if not SUSPICIOUS:
     print("\nNothing suspicious going on here!")
 
 try:
     with open("analysis.txt", "w") as f:
-        f.write(output)
+        f.write(OUTPUT)
         f.close()
 except OSError as error:
     print("OS Error: {0}".format(error))

@@ -1,44 +1,44 @@
+"""Download replays from osu! website"""
 import http.cookiejar
 import urllib.parse
 import urllib.request
 import sys
 import json
-import requests
 import os
+import requests
 
-jar = http.cookiejar.CookieJar()
-opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+JAR = http.cookiejar.CookieJar()
+OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(JAR))
 
 with open('config.json', 'r') as f:
-    config = json.load(f)
+    CONFIG = json.load(f)
 
-# Gets JSON data from a given URL
-def getJSON(url):
+def get_json(url):
+    """Gets JSON data from a given URL"""
     try:
         data = requests.get(url=url).json()
-        return data   
+        return data
     except requests.exceptions.Timeout:
         data = requests.get(url=url).json()
     except requests.exceptions.TooManyRedirects:
         print("Invalid link given")
-    except requests.exceptions.RequestException as e:
-        print (e)
+    except requests.exceptions.RequestException as err:
+        print(err)
 
-
-# Responsible for logging into the osu! website 
-def login(beatmapMd5):
+def login(beatmap_md5):
+    """Responsible for logging into the osu! website """
     print("Attempting to log into the osu! website...")
 
     payload = {
-        'username': config['username'],
-        'password': config['password'],
+        'username': CONFIG['username'],
+        'password': CONFIG['password'],
         'redirect': 'https://osu.ppy.sh/forum/ucp.php',
         'sid': '',
         'login': 'login'
     }
 
     payload = urllib.parse.urlencode(payload).encode("utf-8")
-    response = opener.open("https://osu.ppy.sh/forum/ucp.php?mode=login", payload)
+    response = OPENER.open("https://osu.ppy.sh/forum/ucp.php?mode=login", payload)
 
     data = bytes(str(response.read()), "utf-8").decode("unicode_escape")
 
@@ -48,57 +48,60 @@ def login(beatmapMd5):
         sys.exit()
 
     print("Successfully logged into the osu! website!")
-    return getScores(beatmapMd5)
+    return get_scores(beatmap_md5)
 
-
-# Gets all scores for a given beatmap.
-def getScores(beatmapMd5):
+def get_scores(beatmap_md5):
+    """Gets all scores for a given beatmap."""
     # Get beatmap_id from md5 hash
-    url = 'https://osu.ppy.sh/api/get_beatmaps?k={}&h={}&mode=0&limit=50'.format(config['osu_api_key'], beatmapMd5)
-    beatmapData = getJSON(url)
+    url = 'https://osu.ppy.sh/api/get_beatmaps?k={}&h={}&mode=0&limit=50'.format(
+        CONFIG['osu_api_key'], beatmap_md5
+        )
+    beatmap_data = get_json(url)
 
-    if len(beatmapData) < 1:
+    if len(beatmap_data) < 1:
         print("The beatmap is either invalid or not ranked on osu!")
         sys.exit()
-    
-    beatmapDataString = """
+
+    beatmap_data_string = """
     ------------------------------------------------
     | Comparing Replays For Map:
     | Artist: {}
     | Title: {}
     | Beatmap Id: {}
     ------------------------------------------------
-    """.format(beatmapData[0]['artist'], beatmapData[0]['title'], beatmapData[0]['beatmap_id'])
-    print(beatmapDataString)
+    """.format(beatmap_data[0]['artist'], beatmap_data[0]['title'], beatmap_data[0]['beatmap_id'])
+    print(beatmap_data_string)
 
     # Get list of score ids from beatmap
-    scoreUrl = 'https://osu.ppy.sh/api/get_scores?k={}&b={}&mode=0&limit=50'.format(config['osu_api_key'], beatmapData[0]['beatmap_id'])
-    scoreData = getJSON(scoreUrl)
+    score_url = 'https://osu.ppy.sh/api/get_scores?k={}&b={}&mode=0&limit=50'.format(
+        CONFIG['osu_api_key'], beatmap_data[0]['beatmap_id']
+        )
+    score_data = get_json(score_url)
 
-    scoreIds = []
-    for score in scoreData:
-        scoreIds.append(score['score_id'])
-        
-    return downloadReplays(scoreIds)
+    score_ids = []
+    for score in score_data:
+        score_ids.append(score['score_id'])
 
-# Takes a list of scoreIds and downloads the replay to a new directory.
-def downloadReplays(scoreIds):
+    return download_replays(score_ids)
+
+def download_replays(score_ids):
+    """Takes a list of scoreIds and downloads the replay to a new directory."""
     # Create a new path for the replays to be housed.
-    newPath = os.getcwd() + "/" + "replays"
-    if not os.path.exists(newPath):
-        os.makedirs(newPath)
+    new_path = os.getcwd() + "/" + "replays"
+    if not os.path.exists(new_path):
+        os.makedirs(new_path)
 
-    for scoreId in scoreIds:
+    for score_id in score_ids:
         try:
-            directory = os.path.join(newPath)
-            fullPath = directory + "/" + str(scoreId) + ".osr"
-            print("\rDownloading Replay: {}..." .format(scoreId), end="")
+            directory = os.path.join(new_path)
+            full_path = directory + "/" + str(score_id) + ".osr"
+            print("\rDownloading Replay: {}..." .format(score_id), end="")
 
-            url = 'https://osu.ppy.sh/web/osu-getreplay.php?c={}&m=0'.format(scoreId)
-            f = opener.open(url, {})
-            data = f.read()
-            with open(fullPath, 'wb') as code:
+            url = 'https://osu.ppy.sh/web/osu-getreplay.php?c={}&m=0'.format(score_id)
+            f_2 = OPENER.open(url, {})
+            data = f_2.read()
+            with open(full_path, 'wb') as code:
                 code.write(data)
-        except Exception as e:
-            print(e)
+        except IOError as err:
+            print(err)
             sys.exit()

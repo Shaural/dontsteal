@@ -2,7 +2,6 @@
 import math
 import tkinter as tk
 from tkinter import filedialog
-import osuapi
 from osrparse.replay import parse_replay_file
 from osrparse.enums import GameMode, Mod
 

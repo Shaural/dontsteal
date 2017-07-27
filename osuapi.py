@@ -2,14 +2,14 @@
 import base64
 import lzma
 import time
+import json
 import requests
 import mods
-import json
 
 try:
     with open('config.json', 'r') as f:
-        config = json.load(f)
-        OSU_API_KEY = config['osu_api_key']
+        CONFIG = json.load(f)
+        OSU_API_KEY = CONFIG['osu_api_key']
 except OSError as err:
     print("OS Error {0}".format(err))
 
@@ -37,17 +37,19 @@ def get_replays(beatmap_id):
             try:
                 print("\r({}/50) Downloading {}'s replay...               " .format(i+1, user[0]),
                       end="")
-                replay_data.append([lzma.decompress(base64.b64decode(req["content"])).decode("utf-8"),
+                replay_data.append([lzma.decompress(
+                    base64.b64decode(req["content"])
+                    ).decode("utf-8"),
                                     user[1], user[0]])
                 time.sleep(7)
-            except KeyError as e:
+            except KeyError as err:
                 if req["error"] == "Requesting too fast! Slow your operation, cap'n!":
                     print("Too fast! Trying again in 15 seconds...")
                     time.sleep(15)
                     download_replay()
                 else:
                     print(req)
-                    raise e
+                    raise err
 
         download_replay()
     print("")
