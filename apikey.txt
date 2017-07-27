@@ -1,4 +1,0 @@
-get your api key here:
-https://osu.ppy.sh/p/api
-
-and replace the contents of this file with the api key

@@ -1,15 +1,16 @@
 # dontsteal
-Python3 script to compare 2 or more replays and see how much they're similar to each other.
+Python 3 script to compare two osu! replays for similarities. 
 
-# installation
-run `python -m pip install -r requirements.txt`
+# Setup & Usage
+* run `python -m pip install -r requirements.txt`
+* Create a config.json file
+* Input your username, password, and [osu! API Key](https://osu.ppy.sh/p/api)
+* You can run `python dontsteal.py` to compare two replays you have
+* You can run `python checktop50.py` to compare a replay with its beatmap top 50 in osu!
 
-# setup
-paste an osu!api key in `apikey.txt`
-
-# usage
-- you can run `python dontsteal.py` to compare two replays you have
-- you can run `python checktop50.py` to compare a replay with its beatmap top 50 in osu!
-
-# thanks to
-[goeo_](https://github.com/goeo-) for helping me out a lot with Python coding and the logic behind the program
+# Contributors
+* [goeo_](https://github.com/goeo-) - Helped out with the initial logic.
+* [Swan](https://github.com/Swan) - Fixed it to use osu! accounts to download replays rather than the slow API
+ 
+ # LICENSE
+ MIT License

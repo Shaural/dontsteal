@@ -21,7 +21,6 @@ def open_replay():
 def analyze(replay):
     """Prints some common info about the replay"""
     if replay.game_mode is GameMode.Standard and replay.game_version >= 20140226:
-        print(str(osuapi.get_beatmap_info(replay.beatmap_hash))[2:-2])
         print("REPLAY INFO: " + "played by " + replay.player_name)
         print("Mods used:")
         for mods_used in replay.mod_combination:

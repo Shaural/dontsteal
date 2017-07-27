@@ -4,17 +4,14 @@ import lzma
 import time
 import requests
 import mods
-
-
-OSU_API_KEY = ""
+import json
 
 try:
-    with open("apikey.txt", "r") as f:
-        OSU_API_KEY = f.readline()
-        f.close()
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+        OSU_API_KEY = config['osu_api_key']
 except OSError as err:
     print("OS Error {0}".format(err))
-
 
 def get_users_from_beatmap(beatmap_id):
     """Get users from top 100 scores."""
