@@ -1,5 +1,5 @@
 # dontsteal
-Python 3 script to compare two osu! replays for similarities. 
+_Stop stealing others' replays and git gud scrub!_
 
 # Setup & Usage
 * run `python -m pip install -r requirements.txt`
