@@ -12,6 +12,7 @@ OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(JAR))
 
 with open('config.json', 'r') as f:
     CONFIG = json.load(f)
+    f.close()
 
 def get_json(url):
     """Gets JSON data from a given URL"""
@@ -28,7 +29,6 @@ def get_json(url):
 def login(beatmap_md5):
     """Responsible for logging into the osu! website """
     print("Attempting to log into the osu! website...")
-
     payload = {
         'username': CONFIG['username'],
         'password': CONFIG['password'],
@@ -36,13 +36,11 @@ def login(beatmap_md5):
         'sid': '',
         'login': 'login'
     }
-
     payload = urllib.parse.urlencode(payload).encode("utf-8")
     response = OPENER.open("https://osu.ppy.sh/forum/ucp.php?mode=login", payload)
-
     data = bytes(str(response.read()), "utf-8").decode("unicode_escape")
 
-    # Check if invalid credentials were given
+    #Check if invalid credentials were given
     if "incorrect password" in data:
         print("You have specified an invalid password. Please check config.json")
         sys.exit()
@@ -52,7 +50,7 @@ def login(beatmap_md5):
 
 def get_scores(beatmap_md5):
     """Gets all scores for a given beatmap."""
-    # Get beatmap_id from md5 hash
+    #Get beatmap_id from md5 hash
     url = 'https://osu.ppy.sh/api/get_beatmaps?k={}&h={}&mode=0&limit=50'.format(
         CONFIG['osu_api_key'], beatmap_md5
         )
@@ -72,7 +70,7 @@ def get_scores(beatmap_md5):
     """.format(beatmap_data[0]['artist'], beatmap_data[0]['title'], beatmap_data[0]['beatmap_id'])
     print(beatmap_data_string)
 
-    # Get list of score ids from beatmap
+    #Get list of score ids from beatmap
     score_url = 'https://osu.ppy.sh/api/get_scores?k={}&b={}&mode=0&limit=50'.format(
         CONFIG['osu_api_key'], beatmap_data[0]['beatmap_id']
         )
@@ -86,7 +84,7 @@ def get_scores(beatmap_md5):
 
 def download_replays(score_ids):
     """Takes a list of scoreIds and downloads the replay to a new directory."""
-    # Create a new path for the replays to be housed.
+    #Create a new path for the replays to be housed.
     new_path = os.getcwd() + "/" + "replays"
     if not os.path.exists(new_path):
         os.makedirs(new_path)
