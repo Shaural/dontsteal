@@ -1,21 +1,8 @@
 """dontsteal - stop stealing replays and git gud scrub!"""
 import math
-import tkinter as tk
-from tkinter import filedialog
+import sys
 from osrparse.replay import parse_replay_file
 from osrparse.enums import GameMode, Mod
-
-
-def open_replay():
-    """Calls an explorer window to browse the replay and returns its path"""
-    options = {"defaultextension": ".osr",
-               "filetypes": [("osu! replay file", ".osr")],
-               "title": "Open the replay files to analyze"}
-    root = tk.Tk()
-    root.withdraw()
-    file_path = filedialog.askopenfilename(**options)
-    return parse_replay_file(file_path)
-
 
 def analyze(replay):
     """Prints some common info about the replay"""
@@ -98,8 +85,8 @@ def compare_data(positions1, positions2):
 
 
 if __name__ == "__main__":
-    first_replay = open_replay()
-    second_replay = open_replay()
+    first_replay = parse_replay_file(sys.argv[1])
+    second_replay = parse_replay_file(sys.argv[2])
     analyze(first_replay)
     analyze(second_replay)
     first_replay_positions = get_events_per_second(first_replay)
@@ -107,9 +94,13 @@ if __name__ == "__main__":
     comparison = compare_data(first_replay_positions, second_replay_positions)
 
     print("Cases where the same keys were pressed: {0:.2f}%\n".format(comparison[1]) +
-          "Cases where the pressed keys were different: {0:.2f}%\n".format(comparison[2]))
+          "Cases where the pressed keys were different: {0:.2f}%\n".format(comparison[2]) +
+          "(Might not be accurate for beatmaps with lots of singletap notes")
+
     print("Lowest values:")
     for comp_values in sorted(comparison[0])[2:12]:
         print(comp_values)
-    print("\nAverage of similarity:")
+    
+    print("\nNOTE: small value indicates a most likely copied replay")
+    print("Average of similarity:")
     print("{0:.4f}".format(sum(comparison[0]) / len(comparison[0])))
