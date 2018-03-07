@@ -7,17 +7,14 @@ import dontsteal
 import download
 from osrparse.replay import parse_replay_file
 
-# Open Replay & Analyze
-TARGET_REPLAY = dontsteal.open_replay()
+#Open Replay & Analyze
+TARGET_REPLAY = parse_replay_file(sys.argv[1])
 dontsteal.analyze(TARGET_REPLAY)
-
-# Get Replay Events
+#Get Replay Events
 TARGET_REPLAY_EVENTS = dontsteal.get_events_per_second(TARGET_REPLAY)
-
-# Download Top 50 Replays
+#Download Top 50 Replays
 download.login(TARGET_REPLAY.beatmap_hash)
-
-# Top 50 Replays
+#Top 50 Replays
 TOP_50_REPLAYS = []
 DIRECTORY = os.getcwd()
 PATTERN = "*.osr"
@@ -42,7 +39,6 @@ for rp in TOP_50_REPLAYS:
 
     replay_to_check = parse_replay_file(rp)
     rp_events = dontsteal.get_events_per_second(replay_to_check)
-
     comparison = dontsteal.compare_data(TARGET_REPLAY_EVENTS, rp_events)
 
     pretty_print("\nComparing to {}'s replay".format(replay_to_check.player_name))
@@ -51,39 +47,32 @@ for rp in TOP_50_REPLAYS:
 
     if comparison[1] >= 95 and replay_to_check.player_name != TARGET_REPLAY.player_name:
         SUSPICIOUS = True
-
         print("""\nSuspicious same keys pressed percentage:
               {0:.2f}% with {top_player}'s replay""".format(comparison[1],
                                                             top_player=replay_to_check.player_name))
     pretty_print("Lowest values:")
-
     suspicious_low_values = True
 
     for values in sorted(comparison[0])[1:11]:
-
         if values >= 1:
             suspicious_low_values = False
-
         pretty_print(values)
 
     if suspicious_low_values and replay_to_check.player_name != TARGET_REPLAY.player_name:
-
         SUSPICIOUS = True
-
         print("""\nSuspicious lowest values with
               {top_player}'s replay""".format(top_player=replay_to_check.player_name))
 
     pretty_print("\nAverage of similarity:")
-
     average_value = sum(comparison[0]) / len(comparison[0])
 
     if average_value <= 15 and replay_to_check.player_name != TARGET_REPLAY.player_name:
         SUSPICIOUS = True
-
-        print("""\nSuspicious average of similarity:
+        print("\nNOTE: small value indicates a most likely copied replay")
+        print("""Suspicious average of similarity:
               {0:.4f} with {top_player}'s replay""".format(average_value,
                                                            top_player=replay_to_check.player_name))
-
+                                                           
     pretty_print(average_value)
 
 if not SUSPICIOUS:
