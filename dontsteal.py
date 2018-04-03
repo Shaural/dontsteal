@@ -68,9 +68,9 @@ def compare_data(positions1, positions2):
     same_keys_pressed = 0
     not_same_keys_pressed = 0
 
-    for x_value in range(0, length - 1):
-        first_p = positions1[x_value]
-        second_p = positions2[x_value]
+    for rep_value in range(0, length - 1):
+        first_p = positions1[rep_value]
+        second_p = positions2[rep_value]
         x_value = first_p[0] - second_p[0]
         y_value = first_p[1] - second_p[1]
         closeness.append(math.sqrt(x_value ** 2 + y_value ** 2))
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     print("Cases where the same keys were pressed: {0:.2f}%\n".format(comparison[1]) +
           "Cases where the pressed keys were different: {0:.2f}%\n".format(comparison[2]) +
-          "(Might not be accurate for beatmaps with lots of singletap notes")
+          "(Might not be accurate for beatmaps with lots of singletap notes)")
 
     print("Lowest values:")
     for comp_values in sorted(comparison[0])[2:12]:
