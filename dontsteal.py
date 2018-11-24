@@ -7,7 +7,8 @@ from osrparse.enums import GameMode, Mod
 def analyze(replay):
     """Prints some common info about the replay"""
     if replay.game_mode is GameMode.Standard and replay.game_version >= 20140226:
-        print("REPLAY INFO: " + "played by " + replay.player_name)
+        print("REPLAY INFO")
+        print("Played by " + replay.player_name + " on " + replay.timestamp.__format__("%d/%m/%y %H:%M"))
         print("Mods used:")
         for mods_used in replay.mod_combination:
             print(str(mods_used).split("Mod.")[1])
@@ -19,8 +20,8 @@ def analyze(replay):
                  "Katus: {}".format(replay.katus),
                  "Misses: {}".format(replay.misses),
                  "Max Combo: {}".format(replay.max_combo)]
-        for score_combo in score:
-            print(score_combo)
+        for score_data in score:
+            print(score_data)
         if replay.is_perfect_combo:
             print("Perfect Combo!\n")
         else:
@@ -87,20 +88,40 @@ def compare_data(positions1, positions2):
 if __name__ == "__main__":
     first_replay = parse_replay_file(sys.argv[1])
     second_replay = parse_replay_file(sys.argv[2])
+
+    if(first_replay.beatmap_hash != second_replay.beatmap_hash):
+        sys.exit("""
+        ! ERROR: beatmap is not the same !
+        """)
+
+    print("""
+    --- 1st Replay Data ---
+    """)
     analyze(first_replay)
+    print("""
+    --- 2nd Replay Data ---
+    """)
     analyze(second_replay)
+
+    print("""
+    ---- Analysis Results ----
+    """)
     first_replay_positions = get_events_per_second(first_replay)
     second_replay_positions = get_events_per_second(second_replay)
     comparison = compare_data(first_replay_positions, second_replay_positions)
 
-    print("Cases where the same keys were pressed: {0:.2f}%\n".format(comparison[1]) +
-          "Cases where the pressed keys were different: {0:.2f}%\n".format(comparison[2]) +
-          "(Might not be accurate for beatmaps with lots of singletap notes)")
-
-    print("Lowest values:")
+    print("\nLowest values:")
     for comp_values in sorted(comparison[0])[2:12]:
         print(comp_values)
     
-    print("\nNOTE: small value indicates a most likely copied replay")
+    if (sum(comparison[0]) / len(comparison[0])) <= 15:
+        print("""
+        ! ALERT: possible copied replay !
+        """)
+
     print("Average of similarity:")
-    print("{0:.4f}".format(sum(comparison[0]) / len(comparison[0])))
+    print("{0:.4f}\n".format(sum(comparison[0]) / len(comparison[0])))
+
+    print("Cases where the same keys were pressed: {0:.2f}%\n".format(comparison[1]) +
+        "Cases where the pressed keys were different: {0:.2f}%\n".format(comparison[2]) +
+        "(Might not be accurate for some beatmaps)")
