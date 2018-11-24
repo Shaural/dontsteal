@@ -26,6 +26,7 @@ def get_json(url):
     except requests.exceptions.RequestException as err:
         print(err)
 
+
 def login(beatmap_md5):
     """Responsible for logging into the osu! website """
     print("Attempting to log into the osu! website...")
@@ -40,25 +41,22 @@ def login(beatmap_md5):
     response = OPENER.open("https://osu.ppy.sh/forum/ucp.php?mode=login", payload)
     data = bytes(str(response.read()), "utf-8").decode("unicode_escape")
 
-    #Check if invalid credentials were given
+    #check if invalid credentials were given
     if "incorrect password" in data:
-        print("You have specified an invalid password. Please check config.json")
-        sys.exit()
+        sys.exit("You have specified an invalid password. Please check config.json")
 
     print("Successfully logged into the osu! website!")
     return get_scores(beatmap_md5)
 
+
 def get_scores(beatmap_md5):
     """Gets all scores for a given beatmap."""
-    #Get beatmap_id from md5 hash
-    url = 'https://osu.ppy.sh/api/get_beatmaps?k={}&h={}&mode=0&limit=50'.format(
-        CONFIG['osu_api_key'], beatmap_md5
-        )
+    #get beatmap_id from md5 hash
+    url = 'https://osu.ppy.sh/api/get_beatmaps?k={}&h={}&mode=0&limit=50'.format(CONFIG['osu_api_key'], beatmap_md5)
     beatmap_data = get_json(url)
 
     if len(beatmap_data) < 1:
-        print("The beatmap is either invalid or not ranked on osu!")
-        sys.exit()
+        sys.exit("The beatmap is either invalid or not ranked on osu!")
 
     beatmap_data_string = """
     ------------------------------------------------
@@ -70,10 +68,8 @@ def get_scores(beatmap_md5):
     """.format(beatmap_data[0]['artist'], beatmap_data[0]['title'], beatmap_data[0]['beatmap_id'])
     print(beatmap_data_string)
 
-    #Get list of score ids from beatmap
-    score_url = 'https://osu.ppy.sh/api/get_scores?k={}&b={}&mode=0&limit=50'.format(
-        CONFIG['osu_api_key'], beatmap_data[0]['beatmap_id']
-        )
+    #get list of score ids from beatmap
+    score_url = 'https://osu.ppy.sh/api/get_scores?k={}&b={}&mode=0&limit=50'.format(CONFIG['osu_api_key'], beatmap_data[0]['beatmap_id'])
     score_data = get_json(score_url)
 
     score_ids = []
@@ -82,9 +78,10 @@ def get_scores(beatmap_md5):
 
     return download_replays(score_ids)
 
+
 def download_replays(score_ids):
     """Takes a list of scoreIds and downloads the replay to a new directory."""
-    #Create a new path for the replays to be housed.
+    #create a new path for the replays to be housed.
     new_path = os.getcwd() + "/" + "replays"
     if not os.path.exists(new_path):
         os.makedirs(new_path)
@@ -93,13 +90,14 @@ def download_replays(score_ids):
         try:
             directory = os.path.join(new_path)
             full_path = directory + "/" + str(score_id) + ".osr"
-            print("\rDownloading Replay: {}..." .format(score_id), end="")
+            print("\rDownloading replay: {}..." .format(score_id), end="")
 
             url = 'https://osu.ppy.sh/web/osu-getreplay.php?c={}&m=0'.format(score_id)
             f_2 = OPENER.open(url, {})
             data = f_2.read()
             with open(full_path, 'wb') as code:
                 code.write(data)
+                code.close()
         except IOError as err:
             print(err)
             sys.exit()
