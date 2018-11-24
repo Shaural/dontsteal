@@ -10,6 +10,7 @@ try:
     with open('config.json', 'r') as f:
         CONFIG = json.load(f)
         OSU_API_KEY = CONFIG['osu_api_key']
+        f.close()
 except OSError as err:
     print("OS Error {0}".format(err))
 
@@ -35,12 +36,10 @@ def get_replays(beatmap_id):
             """Downloads and decodes a replay into a usable list"""
             req = requests.get("https://osu.ppy.sh/api/get_replay", params=parameters).json()
             try:
-                print("\r({}/50) Downloading {}'s replay...               " .format(i+1, user[0]),
-                      end="")
+                print("\r({}/50) Downloading {}'s replay...               " .format(i+1, user[0]), end="")
                 replay_data.append([lzma.decompress(
                     base64.b64decode(req["content"])
-                    ).decode("utf-8"),
-                                    user[1], user[0]])
+                    ).decode("utf-8"),user[1], user[0]])
                 time.sleep(7)
             except KeyError as err:
                 if req["error"] == "Requesting too fast! Slow your operation, cap'n!":
@@ -52,12 +51,13 @@ def get_replays(beatmap_id):
                     raise err
 
         download_replay()
+        
     print("")
     return replay_data
 
 
 def get_beatmap(map_hash):
-    """Retrieve general beatmap information and return beatmap ID"""
+    """Returns beatmap ID from given beatmap hash"""
     parameters = {"k": OSU_API_KEY, "h": map_hash}
     requ = requests.get("https://osu.ppy.sh/api/get_beatmaps", params=parameters).json()
     return requ[0]["beatmap_id"]
@@ -65,9 +65,16 @@ def get_beatmap(map_hash):
 
 def get_beatmap_info(beatmap_hash):
     """Retrieve general beatmap information."""
-    beatmap_info = []
     parameters = {"k": OSU_API_KEY, "h": beatmap_hash}
     b_req = requests.get("https://osu.ppy.sh/api/get_beatmaps", params=parameters).json()
-    beatmap_info.append("BEATMAP INFO: " + b_req[0]["artist"] + " - " + b_req[0]["title"]
-                        + "[" + b_req[0]["version"] + "]")
-    return beatmap_info
+
+    beatmap_data_string = """
+    ------------------------------------------------
+    | Comparing Replays For Map:
+    | Artist: {}
+    | Title: {}
+    | Beatmap Id: {}
+    ------------------------------------------------
+    """.format(b_req[0]['artist'], b_req[0]['title'], b_req[0]['beatmap_id'])
+    print(beatmap_data_string)
+
