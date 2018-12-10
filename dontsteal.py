@@ -93,6 +93,10 @@ if __name__ == "__main__":
         sys.exit("""
         ! ERROR: beatmap is not the same !
         """)
+    elif(first_replay.player_name == second_replay.player_name):
+        sys.exit("""
+        ! ERROR: replays from the same player !
+        """)
 
     print("""
     --- 1st Replay Data ---
@@ -109,19 +113,22 @@ if __name__ == "__main__":
     first_replay_positions = get_events_per_second(first_replay)
     second_replay_positions = get_events_per_second(second_replay)
     comparison = compare_data(first_replay_positions, second_replay_positions)
+    avg_similarity = sum(comparison[0]) / len(comparison[0])
+    same_keys = comparison[1]
+    different_keys = comparison[2]
 
     print("\nLowest values:")
-    for comp_values in sorted(comparison[0])[2:12]:
-        print(comp_values)
-    
-    if (sum(comparison[0]) / len(comparison[0])) <= 15:
+    for lowest_values in sorted(comparison[0])[2:12]:
+        print(lowest_values)
+
+    print("\nAverage of similarity:")
+    print("{0:.4f}\n".format(avg_similarity))
+
+    if (avg_similarity) <= 15:
         print("""
         ! ALERT: possible copied replay !
-        """)
+        \n""")
 
-    print("Average of similarity:")
-    print("{0:.4f}\n".format(sum(comparison[0]) / len(comparison[0])))
-
-    print("Cases where the same keys were pressed: {0:.2f}%\n".format(comparison[1]) +
-        "Cases where the pressed keys were different: {0:.2f}%\n".format(comparison[2]) +
+    print("Cases where the same keys were pressed: {0:.2f}%\n".format(same_keys) +
+        "Cases where the pressed keys were different: {0:.2f}%\n".format(different_keys) +
         "(Might not be accurate for some beatmaps)")
